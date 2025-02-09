@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>计算器 by 李小沐</title>
+    <title>计算器 By 李小沐</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -31,7 +31,8 @@
         }
 
         body {
-            background: #f5f5f7;
+            background: url('a.png') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             margin: 0;
             display: flex;
@@ -42,11 +43,12 @@
         }
 
         body[data-theme="dark"] {
-            background: #000;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('a.png') no-repeat center center fixed;
+            background-size: cover;
         }
 
         .calculator {
-            background: var(--calculator-bg-light);
+            background: rgba(240, 240, 245, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-radius: 40px;
@@ -62,7 +64,7 @@
         }
 
         body[data-theme="dark"] .calculator {
-            background: var(--calculator-bg-dark);
+            background: rgba(28, 28, 30, 0.85);
             color: var(--display-text-dark);
         }
 
@@ -280,6 +282,16 @@
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                background-attachment: scroll;
+                background-position: center 10%;
+                background-size: 100% auto;
+            }
+
+            body[data-theme="dark"] {
+                background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('a.png') no-repeat;
+                background-position: center 10%;
+                background-size: 100% auto;
+                background-attachment: scroll;
             }
 
             .calculator {
@@ -287,10 +299,15 @@
                 padding: 1rem;
                 border-radius: 30px 30px 0 0;
                 max-width: 100%;
-                flex: 1;
+                margin-top: auto;
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-end;
+                background: rgba(240, 240, 245, 0.75);
+            }
+
+            body[data-theme="dark"] .calculator {
+                background: rgba(28, 28, 30, 0.75);
             }
 
             .display {
@@ -319,21 +336,27 @@
             /* 顶部控制按钮优化 */
             .top-controls {
                 padding: 1rem;
-                margin-bottom: 1rem;
+                margin-bottom: auto;
+                background: transparent;
+            }
+
+            body[data-theme="dark"] .top-controls {
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
             }
 
             .control-button {
                 padding: 0.6rem 1rem;
                 min-width: auto;
                 border-radius: 20px;
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(255, 255, 255, 0.6);
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
                 font-size: 0.9rem;
             }
 
             body[data-theme="dark"] .control-button {
-                background: rgba(255, 255, 255, 0.1);
+                background: rgba(28, 28, 30, 0.6);
+                color: white;
             }
 
             .left-controls {
@@ -367,6 +390,14 @@
 
             /* iPhone SE 等小屏设备 */
             @media (max-width: 375px) {
+                body {
+                    background-position: center 5%;
+                }
+
+                body[data-theme="dark"] {
+                    background-position: center 5%;
+                }
+
                 .buttons button {
                     width: 60px;
                     height: 60px;
@@ -608,7 +639,7 @@
         // 添加角色模式选择
         let characterMode = 'normal'; // 'normal', 'nezha', 'aobing'
 
-        // 添加敖丙风格的语音映射
+        // 修改敖丙风格的语音映射
         const aobingSpeech = {
             numbers: {
                 '0': '零',
@@ -625,14 +656,14 @@
                 '00': '零零'
             },
             operators: {
-                '+': '请加上',
-                '-': '请减去',
-                '*': '请乘以',
-                '/': '请除以'
+                '+': '三太子，加上',
+                '-': '三太子，减去',
+                '*': '三太子，乘以',
+                '/': '三太子，除以'
             },
-            equals: '结果是',
-            clear: '已经清除了',
-            percentage: '转换为百分比'
+            equals: '三太子，结果是',
+            clear: '三太子，已经清除了',
+            percentage: '三太子，转换为百分比'
         };
 
         // 修改语音函数，支持敖丙模式
@@ -651,15 +682,14 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.voice = voice;
             
-            // 根据角色调整语音参数
             if (characterMode === 'nezha') {
                 utterance.rate = 1.1;
                 utterance.pitch = 1.2;
             } else if (characterMode === 'aobing') {
-                utterance.rate = 0.9; // 敖丙说话更慢
-                utterance.pitch = 0.9; // 声音更低沉
+                utterance.rate = 0.9;
+                utterance.pitch = 0.6;
             } else {
-                utterance.rate = 1.2;
+                utterance.rate = 0.9;
                 utterance.pitch = 1;
             }
             
@@ -709,7 +739,7 @@
                     utterance.pitch = 1.2;
                 } else if (characterMode === 'aobing') {
                     utterance.rate = 0.9;
-                    utterance.pitch = 0.9;
+                    utterance.pitch = 0.6;
                 } else {
                     utterance.rate = 1.2;
                     utterance.pitch = 1;
@@ -750,9 +780,9 @@
                     utterance.pitch = 1.2;
                 } else if (characterMode === 'aobing') {
                     utterance.rate = 0.9;
-                    utterance.pitch = 0.9;
+                    utterance.pitch = 0.6;
                 } else {
-                    utterance.rate = 1.2;
+                    utterance.rate = 0.9;
                     utterance.pitch = 1;
                 }
                 
@@ -803,7 +833,7 @@
                 if (characterMode === 'nezha') {
                     equation = `${firstOperand} ${nezhaSpeech.operators[operator]} ${secondOperand}，算出来是 ${isNegative ? '负' : ''}${absResult} 哦！`;
                 } else if (characterMode === 'aobing') {
-                    equation = `${firstOperand} ${aobingSpeech.operators[operator]} ${secondOperand}，${aobingSpeech.equals} ${isNegative ? '负' : ''}${absResult}`;
+                    equation = `三太子，${firstOperand} ${aobingSpeech.operators[operator]} ${secondOperand}，${aobingSpeech.equals} ${isNegative ? '负' : ''}${absResult}`;
                 } else {
                     equation = `${firstOperand} ${operatorSpeech[operator]} ${secondOperand} 等于 ${isNegative ? '负' : ''}${absResult}`;
                 }
@@ -816,9 +846,9 @@
                     utterance.pitch = 1.2;
                 } else if (characterMode === 'aobing') {
                     utterance.rate = 0.9;
-                    utterance.pitch = 0.9;
+                    utterance.pitch = 0.6;
                 } else {
-                    utterance.rate = 1.2;
+                    utterance.rate = 0.9;
                     utterance.pitch = 1;
                 }
                 
@@ -851,9 +881,9 @@
                     utterance.pitch = 1.2;
                 } else if (characterMode === 'aobing') {
                     utterance.rate = 0.9;
-                    utterance.pitch = 0.9;
+                    utterance.pitch = 0.6;
                 } else {
-                    utterance.rate = 1.2;
+                    utterance.rate = 0.9;
                     utterance.pitch = 1;
                 }
                 
@@ -893,7 +923,7 @@
                         utterance.pitch = 1.2;
                     } else if (characterMode === 'aobing') {
                         utterance.rate = 0.9;
-                        utterance.pitch = 0.9;
+                        utterance.pitch = 0.6;
                     } else {
                         utterance.rate = 1.2;
                         utterance.pitch = 1;
@@ -936,7 +966,7 @@
             
             if (isSoundEnabled) {
                 synth.cancel();
-                const text = isNezhaMode ? '哪吒模式开启啦！我是哪吒，让我来帮你算算吧！' : '切换回普通模式';
+                const text = isNezhaMode ? '哪吒模式开启啦！我是哪吒，我命由我不由天，让我来帮你算算吧！' : '切换回普通模式';
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.voice = voice;
                 utterance.rate = isNezhaMode ? 1.1 : 1.2;
@@ -976,9 +1006,9 @@
                 synth.cancel();
                 let text;
                 if (characterMode === 'nezha') {
-                    text = '哪吒模式开启啦！我是哪吒，让我来帮你算算吧！';
+                    text = '哪吒模式开启啦！我是哪吒，我命由我不由天，让我来帮你算算吧！';
                 } else if (characterMode === 'aobing') {
-                    text = '我是敖丙，让我来协助你进行计算。';
+                    text = '我是敖丙，你打不过我的！让我来协助你计算吧';
                 } else {
                     text = '已切换回普通模式';
                 }
@@ -991,9 +1021,9 @@
                     utterance.pitch = 1.2;
                 } else if (characterMode === 'aobing') {
                     utterance.rate = 0.9;
-                    utterance.pitch = 0.9;
+                    utterance.pitch = 0.6;
                 } else {
-                    utterance.rate = 1.2;
+                    utterance.rate = 0.9;
                     utterance.pitch = 1;
                 }
                 
@@ -1064,7 +1094,7 @@
                     if (characterMode === 'nezha') {
                         text = `${absValue}变成${isNegative ? '负' : '正'}${absValue}啦！`;
                     } else if (characterMode === 'aobing') {
-                        text = `${absValue}转换为${isNegative ? '负' : '正'}${absValue}`;
+                        text = `三太子，${absValue}转换为${isNegative ? '负' : '正'}${absValue}`;
                     } else {
                         text = `${isNegative ? '负' : '正'}${absValue}`;
                     }
@@ -1077,9 +1107,9 @@
                         utterance.pitch = 1.2;
                     } else if (characterMode === 'aobing') {
                         utterance.rate = 0.9;
-                        utterance.pitch = 0.9;
+                        utterance.pitch = 0.6;
                     } else {
-                        utterance.rate = 1.2;
+                        utterance.rate = 0.9;
                         utterance.pitch = 1;
                     }
                     
