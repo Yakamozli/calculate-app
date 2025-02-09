@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Modern Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* 亮色主题变量 */
+            --calculator-bg-light: rgba(240, 240, 245, 0.95);
+            --display-text-light: #000000;
+            --operator-bg: #ff9f0a;
+            --operator-hover: #ffb340;
+            --number-bg-light: rgba(255, 255, 255, 0.8);
+            --number-hover-light: rgba(255, 255, 255, 0.9);
+            --function-bg-light: rgba(200, 200, 200, 0.8);
+            --function-hover-light: rgba(200, 200, 200, 0.9);
+            
+            /* 暗色主题变量 */
+            --calculator-bg-dark: rgba(28, 28, 30, 0.95);
+            --display-text-dark: #ffffff;
+            --number-bg-dark: rgba(255, 255, 255, 0.1);
+            --number-hover-dark: rgba(255, 255, 255, 0.15);
+            --function-bg-dark: rgba(255, 255, 255, 0.2);
+            --function-hover-dark: rgba(255, 255, 255, 0.25);
+            
+            /* 通用阴影 */
+            --button-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            --calculator-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        body {
+            background: #f5f5f7;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        body[data-theme="dark"] {
+            background: #000;
+        }
+
+        .calculator {
+            background: var(--calculator-bg-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: var(--calculator-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 2rem;
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            color: var(--display-text-light);
+        }
+
+        body[data-theme="dark"] .calculator {
+            background: var(--calculator-bg-dark);
+            color: var(--display-text-dark);
+        }
+
+        .calculator:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.3);
+        }
+
+        .display {
+            font-size: 5.5rem;
+            font-weight: 300;
+            color: var(--display-text-light);
+            text-align: right;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body[data-theme="dark"] .display {
+            color: var(--display-text-dark);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .display::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            padding: 0.5rem;
+        }
+
+        .buttons button {
+            font-size: 2rem;
+            font-weight: 400;
+            border: none;
+            border-radius: 50%;
+            width: 75px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--display-text-light);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .buttons button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+        }
+
+        /* 数字按钮 */
+        .buttons button:not(.operator):not(.clear):not([onclick*="calculatePercentage"]):not([onclick*="toggleSign"]) {
+            background: var(--number-bg-light);
+            color: var(--display-text-light);
+        }
+
+        body[data-theme="dark"] .buttons button:not(.operator):not(.clear):not([onclick*="calculatePercentage"]):not([onclick*="toggleSign"]) {
+            background: var(--number-bg-dark);
+            color: var(--display-text-dark);
+        }
+
+        .buttons button:not(.operator):not(.clear):hover {
+            background: var(--number-hover-light);
+        }
+
+        body[data-theme="dark"] .buttons button:not(.operator):not(.clear):hover {
+            background: var(--number-hover-dark);
+        }
+
+        /* 运算符按钮 */
+        .buttons button.operator {
+            background: var(--operator-bg);
+            font-size: 2.2rem;
+            box-shadow: var(--button-shadow);
+        }
+
+        body[data-theme="dark"] .buttons button.operator {
+            background: var(--operator-bg);
+        }
+
+        .buttons button.operator:hover {
+            background: var(--operator-hover);
+            transform: translateY(-2px);
+        }
+
+        body[data-theme="dark"] .buttons button.operator:hover {
+            background: var(--operator-hover);
+        }
+
+        /* 功能按钮 */
+        .buttons button.clear,
+        .buttons button[onclick*="calculatePercentage"],
+        .buttons button[onclick*="toggleSign"] {
+            background: var(--function-bg-light);
+            color: var(--display-text-light);
+        }
+
+        body[data-theme="dark"] .buttons button.clear,
+        body[data-theme="dark"] .buttons button[onclick*="calculatePercentage"],
+        body[data-theme="dark"] .buttons button[onclick*="toggleSign"] {
+            background: var(--function-bg-dark);
+            color: var(--display-text-dark);
+        }
+
+        .buttons button.clear:hover,
+        .buttons button[onclick*="calculatePercentage"]:hover,
+        .buttons button[onclick*="toggleSign"]:hover {
+            background: var(--function-hover-light);
+            transform: translateY(-2px);
+        }
+
+        body[data-theme="dark"] .buttons button.clear:hover,
+        body[data-theme="dark"] .buttons button[onclick*="calculatePercentage"]:hover,
+        body[data-theme="dark"] .buttons button[onclick*="toggleSign"]:hover {
+            background: var(--function-hover-dark);
+        }
+
+        /* 零按钮 */
+        .zero-btn {
+            grid-column: span 2;
+            width: 100% !important;
+            border-radius: 37.5px !important;
+            justify-content: flex-start !important;
+            padding-left: 32px !important;
+        }
+
+        /* 控制按钮样式 */
+        .top-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 1000;
+        }
+
+        .left-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .control-button {
+            background: var(--number-bg-light);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            color: var(--display-text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        body[data-theme="dark"] .control-button {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--display-text-dark);
+        }
+
+        .control-button:hover {
+            background: var(--number-hover-light);
+            transform: translateY(-2px);
+        }
+
+        body[data-theme="dark"] .control-button:hover {
+            background: var(--number-hover-dark);
+        }
+
+        .control-button i {
+            font-size: 1.2rem;
+        }
+
+        .mode-label {
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .calculator {
+                margin: 0;
+                padding: 1rem;
+                border-radius: 30px 30px 0 0;
+                max-width: 100%;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+
+            .display {
+                font-size: 4.5rem;
+                padding: 0.5rem 1rem;
+                margin-bottom: 1rem;
+                min-height: 80px;
+                background: transparent;
+            }
+
+            .buttons {
+                gap: 10px;
+                padding: 0.5rem;
+            }
+
+            .buttons button {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+
+            .zero-btn {
+                padding-left: 28px !important;
+            }
+
+            /* 顶部控制按钮优化 */
+            .top-controls {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .control-button {
+                padding: 0.6rem 1rem;
+                min-width: auto;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                font-size: 0.9rem;
+            }
+
+            body[data-theme="dark"] .control-button {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .left-controls {
+                gap: 0.8rem;
+            }
+
+            .control-button i {
+                font-size: 1rem;
+            }
+
+            .mode-label {
+                font-size: 0.9rem;
+            }
+
+            /* 适配不同屏幕高度 */
+            @media (max-height: 700px) {
+                .calculator {
+                    padding-top: 0.5rem;
+                }
+
+                .display {
+                    font-size: 4rem;
+                    min-height: 70px;
+                }
+
+                .buttons button {
+                    width: 65px;
+                    height: 65px;
+                }
+            }
+
+            /* iPhone SE 等小屏设备 */
+            @media (max-width: 375px) {
+                .buttons button {
+                    width: 60px;
+                    height: 60px;
+                    font-size: 1.6rem;
+                }
+
+                .display {
+                    font-size: 3.5rem;
+                }
+
+                .control-button {
+                    padding: 0.5rem 0.8rem;
+                }
+            }
+
+            /* 适配刘海屏 */
+            @supports (padding-top: env(safe-area-inset-top)) {
+                .top-controls {
+                    padding-top: calc(env(safe-area-inset-top) + 1rem);
+                }
+            }
+        }
+
+        /* 优化计算器卡片效果 */
+        @media (max-width: 480px) {
+            .calculator {
+                box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.1);
+                border: none;
+                transition: transform 0.3s ease;
+            }
+
+            body[data-theme="dark"] .calculator {
+                box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.2);
+            }
+
+            .calculator:hover {
+                transform: none;
+            }
+
+            /* 优化按钮触摸反馈 */
+            .buttons button:active {
+                transform: scale(0.95);
+                transition: transform 0.1s ease;
+            }
+        }
+
+        /* 主题切换图标 */
+        .theme-toggle i {
+            transition: transform 0.3s ease;
+        }
+
+        body[data-theme="dark"] .theme-toggle i.fa-moon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="top-controls">
+        <div class="left-controls">
+            <button class="control-button sound-toggle" onclick="toggleSound()">
+                <i class="fas fa-volume-up"></i>
+                <span class="mode-label">音效</span>
+            </button>
+            <button class="control-button character-toggle" onclick="toggleCharacterMode()">
+                <i class="fas fa-user"></i>
+                <span class="mode-label" id="character-mode-label">普通模式</span>
+            </button>
+        </div>
+        <div class="right-controls">
+            <button class="control-button theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+                <span class="mode-label">主题</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="calculator">
+        <div class="display">0</div>
+        <div class="buttons">
+            <button class="clear" onclick="clearDisplay()">AC</button>
+            <button onclick="toggleSign()">+/-</button>
+            <button onclick="calculatePercentage()">%</button>
+            <button class="operator" onclick="appendOperator('/')">÷</button>
+            
+            <button onclick="appendNumber(7)">7</button>
+            <button onclick="appendNumber(8)">8</button>
+            <button onclick="appendNumber(9)">9</button>
+            <button class="operator" onclick="appendOperator('*')">×</button>
+            
+            <button onclick="appendNumber(4)">4</button>
+            <button onclick="appendNumber(5)">5</button>
+            <button onclick="appendNumber(6)">6</button>
+            <button class="operator" onclick="appendOperator('-')">−</button>
+            
+            <button onclick="appendNumber(1)">1</button>
+            <button onclick="appendNumber(2)">2</button>
+            <button onclick="appendNumber(3)">3</button>
+            <button class="operator" onclick="appendOperator('+')">+</button>
+            
+            <button onclick="appendNumber(0)" class="zero-btn">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button class="operator" onclick="calculate()">=</button>
+        </div>
+    </div>
+
+    <script>
+        // 计算器核心逻辑
+        let currentValue = '0';
+        let firstOperand = null;
+        let operator = null;
+        let shouldResetScreen = false;
+
+        const display = document.querySelector('.display');
+
+        // 添加音效系统
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 数字音效系统
+        const numberFrequencies = {
+            '0': 262, // C4 (中央C)
+            '1': 294, // D4
+            '2': 330, // E4
+            '3': 349, // F4
+            '4': 392, // G4
+            '5': 440, // A4
+            '6': 494, // B4
+            '7': 523, // C5
+            '8': 587, // D5
+            '9': 659, // E5
+            '.': 440, // A4
+            '00': 262 // C4
+        };
+
+        // 播放数字音效
+        function playNumberSound(number) {
+            if (!isSoundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(numberFrequencies[number], audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        // 修改播放操作符音效函数
+        function playOperatorSound() {
+            if (!isSoundEnabled) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function updateDisplay(value) {
+            const maxLength = 10;
+            let displayValue = value.toString();
+            
+            // 处理过长数字
+            if (displayValue.length > maxLength) {
+                // 使用科学计数法
+                const num = parseFloat(value);
+                displayValue = num.toExponential(4);
+            }
+            
+            // 防止内容溢出
+            display.textContent = displayValue;
+            display.style.fontSize = displayValue.length > 8 ? '3rem' : '4rem';
+        }
+
+        // 语音合成设置
+        const synth = window.speechSynthesis;
+        let voice = null;
+
+        // 初始化语音
+        function initVoice() {
+            // 等待语音列表加载
+            setTimeout(() => {
+                const voices = synth.getVoices();
+                // 优先选择中文语音
+                voice = voices.find(v => v.lang.includes('zh')) || 
+                       voices.find(v => v.lang.includes('en')) || 
+                       voices[0];
+            }, 100);
+        }
+
+        // 页面加载时初始化语音
+        initVoice();
+        // 某些浏览器需要这个事件
+        speechSynthesis.onvoiceschanged = initVoice;
+
+        // 添加哪吒模式开关
+        let isNezhaMode = false;
+
+        // 哪吒风格的语音映射
+        const nezhaSpeech = {
+            numbers: {
+                '0': '零呀',
+                '1': '一呀',
+                '2': '二呀',
+                '3': '三呀',
+                '4': '四呀',
+                '5': '五呀',
+                '6': '六呀',
+                '7': '七呀',
+                '8': '八呀',
+                '9': '九呀',
+                '.': '点呀',
+                '00': '零零呀'
+            },
+            operators: {
+                '+': '加上去',
+                '-': '减下来',
+                '*': '乘起来',
+                '/': '除一下'
+            },
+            equals: '等于多少呢？',
+            clear: '全部清空啦！',
+            percentage: '变成百分比咯'
+        };
+
+        // 添加角色模式选择
+        let characterMode = 'normal'; // 'normal', 'nezha', 'aobing'
+
+        // 添加敖丙风格的语音映射
+        const aobingSpeech = {
+            numbers: {
+                '0': '零',
+                '1': '一',
+                '2': '二',
+                '3': '三',
+                '4': '四',
+                '5': '五',
+                '6': '六',
+                '7': '七',
+                '8': '八',
+                '9': '九',
+                '.': '点',
+                '00': '零零'
+            },
+            operators: {
+                '+': '请加上',
+                '-': '请减去',
+                '*': '请乘以',
+                '/': '请除以'
+            },
+            equals: '结果是',
+            clear: '已经清除了',
+            percentage: '转换为百分比'
+        };
+
+        // 修改语音函数，支持敖丙模式
+        function speakNumber(number) {
+            if (!isSoundEnabled) return;
+            
+            synth.cancel();
+            
+            let text = number.toString();
+            if (characterMode === 'nezha') {
+                text = nezhaSpeech.numbers[number] || number.toString();
+            } else if (characterMode === 'aobing') {
+                text = aobingSpeech.numbers[number] || number.toString();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.voice = voice;
+            
+            // 根据角色调整语音参数
+            if (characterMode === 'nezha') {
+                utterance.rate = 1.1;
+                utterance.pitch = 1.2;
+            } else if (characterMode === 'aobing') {
+                utterance.rate = 0.9; // 敖丙说话更慢
+                utterance.pitch = 0.9; // 声音更低沉
+            } else {
+                utterance.rate = 1.2;
+                utterance.pitch = 1;
+            }
+            
+            utterance.volume = 0.8;
+            synth.speak(utterance);
+        }
+
+        // 修改数字输入函数
+        function appendNumber(number) {
+            if (shouldResetScreen) {
+                currentValue = '0';
+                shouldResetScreen = false;
+            }
+            
+            if (number === '.' && currentValue.includes('.')) return;
+            
+            if (currentValue === '0' && number !== '.') {
+                currentValue = number.toString();
+            } else {
+                currentValue = currentValue + number;
+            }
+            
+            updateDisplay(currentValue);
+            
+            // 播放数字音效和语音
+            if (isSoundEnabled) {
+                playNumberSound(number);
+                
+                // 优化语音反馈，考虑负数情况
+                synth.cancel();
+                let text = number.toString();
+                const isNegative = currentValue.startsWith('-');
+                
+                if (characterMode === 'nezha') {
+                    text = isNegative ? `负${nezhaSpeech.numbers[number]}` : nezhaSpeech.numbers[number];
+                } else if (characterMode === 'aobing') {
+                    text = isNegative ? `负${aobingSpeech.numbers[number]}` : aobingSpeech.numbers[number];
+                } else {
+                    text = isNegative ? `负${number}` : number;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = voice;
+                
+                if (characterMode === 'nezha') {
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.2;
+                } else if (characterMode === 'aobing') {
+                    utterance.rate = 0.9;
+                    utterance.pitch = 0.9;
+                } else {
+                    utterance.rate = 1.2;
+                    utterance.pitch = 1;
+                }
+                
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+        }
+
+        // 运算符语音映射
+        const operatorSpeech = {
+            '+': '加',
+            '-': '减',
+            '*': '乘',
+            '/': '除以'
+        };
+
+        // 修改运算符输入函数
+        function appendOperator(newOperator) {
+            if (isSoundEnabled) {
+                synth.cancel();
+                
+                let text;
+                if (characterMode === 'nezha') {
+                    text = nezhaSpeech.operators[newOperator];
+                } else if (characterMode === 'aobing') {
+                    text = aobingSpeech.operators[newOperator];
+                } else {
+                    text = operatorSpeech[newOperator];
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = voice;
+                
+                if (characterMode === 'nezha') {
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.2;
+                } else if (characterMode === 'aobing') {
+                    utterance.rate = 0.9;
+                    utterance.pitch = 0.9;
+                } else {
+                    utterance.rate = 1.2;
+                    utterance.pitch = 1;
+                }
+                
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+
+            const inputValue = parseFloat(currentValue);
+            if (operator !== null && !shouldResetScreen) {
+                calculate();
+            }
+            operator = newOperator;
+            firstOperand = parseFloat(currentValue);
+            shouldResetScreen = true;
+        }
+
+        // 修改计算函数
+        function calculate() {
+            if (operator === null || firstOperand === null) return;
+            const secondOperand = parseFloat(currentValue);
+            let result;
+            
+            switch (operator) {
+                case '+':
+                    result = firstOperand + secondOperand;
+                    break;
+                case '-':
+                    result = firstOperand - secondOperand;
+                    break;
+                case '*':
+                    result = firstOperand * secondOperand;
+                    break;
+                case '/':
+                    result = secondOperand === 0 ? 'Error' : firstOperand / secondOperand;
+                    break;
+            }
+            
+            currentValue = result.toString();
+            updateDisplay(currentValue);
+
+            if (isSoundEnabled) {
+                synth.cancel();
+                
+                let equation;
+                const isNegative = result < 0;
+                const absResult = Math.abs(result);
+                
+                if (characterMode === 'nezha') {
+                    equation = `${firstOperand} ${nezhaSpeech.operators[operator]} ${secondOperand}，算出来是 ${isNegative ? '负' : ''}${absResult} 哦！`;
+                } else if (characterMode === 'aobing') {
+                    equation = `${firstOperand} ${aobingSpeech.operators[operator]} ${secondOperand}，${aobingSpeech.equals} ${isNegative ? '负' : ''}${absResult}`;
+                } else {
+                    equation = `${firstOperand} ${operatorSpeech[operator]} ${secondOperand} 等于 ${isNegative ? '负' : ''}${absResult}`;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(equation);
+                utterance.voice = voice;
+                
+                if (characterMode === 'nezha') {
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.2;
+                } else if (characterMode === 'aobing') {
+                    utterance.rate = 0.9;
+                    utterance.pitch = 0.9;
+                } else {
+                    utterance.rate = 1.2;
+                    utterance.pitch = 1;
+                }
+                
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+
+            operator = null;
+            firstOperand = null;
+            shouldResetScreen = true;
+        }
+
+        // 修改清除函数
+        function clearDisplay() {
+            if (isSoundEnabled) {
+                synth.cancel();
+                let text;
+                if (characterMode === 'nezha') {
+                    text = nezhaSpeech.clear;
+                } else if (characterMode === 'aobing') {
+                    text = aobingSpeech.clear;
+                } else {
+                    text = '清除';
+                }
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = voice;
+                
+                if (characterMode === 'nezha') {
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.2;
+                } else if (characterMode === 'aobing') {
+                    utterance.rate = 0.9;
+                    utterance.pitch = 0.9;
+                } else {
+                    utterance.rate = 1.2;
+                    utterance.pitch = 1;
+                }
+                
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+            
+            currentValue = '0';
+            firstOperand = null;
+            operator = null;
+            updateDisplay(currentValue);
+        }
+
+        // 修改百分比计算函数，确保也有音效
+        function calculatePercentage() {
+            if (currentValue !== '0') {
+                playOperatorSound(); // 添加音效
+                currentValue = (parseFloat(currentValue) / 100).toString();
+                updateDisplay(currentValue);
+                
+                // 添加语音反馈
+                if (isSoundEnabled) {
+                    synth.cancel();
+                    let text;
+                    if (characterMode === 'nezha') {
+                        text = '变成百分比啦！';
+                    } else if (characterMode === 'aobing') {
+                        text = '已转换为百分比';
+                    } else {
+                        text = '百分比转换';
+                    }
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.voice = voice;
+                    
+                    if (characterMode === 'nezha') {
+                        utterance.rate = 1.1;
+                        utterance.pitch = 1.2;
+                    } else if (characterMode === 'aobing') {
+                        utterance.rate = 0.9;
+                        utterance.pitch = 0.9;
+                    } else {
+                        utterance.rate = 1.2;
+                        utterance.pitch = 1;
+                    }
+                    
+                    utterance.volume = 0.8;
+                    synth.speak(utterance);
+                }
+            }
+        }
+
+        // 主题切换功能
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.querySelector('.theme-toggle i');
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            
+            body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            themeToggle.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
+            
+            // 保存主题设置到本地存储
+            localStorage.setItem('calculatorTheme', isDark ? 'light' : 'dark');
+        }
+
+        // 添加音效开关功能
+        let isSoundEnabled = true;
+        
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const soundToggle = document.querySelector('.sound-toggle i');
+            soundToggle.className = isSoundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            localStorage.setItem('calculatorSound', isSoundEnabled);
+        }
+
+        // 添加哪吒模式切换按钮
+        function toggleNezhaMode() {
+            isNezhaMode = !isNezhaMode;
+            const nezhaToggle = document.querySelector('.nezha-toggle i');
+            nezhaToggle.className = isNezhaMode ? 'fas fa-child' : 'fas fa-user';
+            
+            if (isSoundEnabled) {
+                synth.cancel();
+                const text = isNezhaMode ? '哪吒模式开启啦！我是哪吒，让我来帮你算算吧！' : '切换回普通模式';
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = voice;
+                utterance.rate = isNezhaMode ? 1.1 : 1.2;
+                utterance.pitch = isNezhaMode ? 1.2 : 1;
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+            
+            localStorage.setItem('calculatorNezhaMode', isNezhaMode);
+        }
+
+        // 修改角色切换函数，更新模式标签
+        function toggleCharacterMode() {
+            if (characterMode === 'normal') {
+                characterMode = 'nezha';
+            } else if (characterMode === 'nezha') {
+                characterMode = 'aobing';
+            } else {
+                characterMode = 'normal';
+            }
+
+            const characterToggle = document.querySelector('.character-toggle i');
+            const modeLabel = document.getElementById('character-mode-label');
+            
+            if (characterMode === 'normal') {
+                characterToggle.className = 'fas fa-user';
+                modeLabel.textContent = '普通模式';
+            } else if (characterMode === 'nezha') {
+                characterToggle.className = 'fas fa-child';
+                modeLabel.textContent = '哪吒模式';
+            } else {
+                characterToggle.className = 'fas fa-dragon';
+                modeLabel.textContent = '敖丙模式';
+            }
+            
+            if (isSoundEnabled) {
+                synth.cancel();
+                let text;
+                if (characterMode === 'nezha') {
+                    text = '哪吒模式开启啦！我是哪吒，让我来帮你算算吧！';
+                } else if (characterMode === 'aobing') {
+                    text = '我是敖丙，让我来协助你进行计算。';
+                } else {
+                    text = '已切换回普通模式';
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.voice = voice;
+                
+                if (characterMode === 'nezha') {
+                    utterance.rate = 1.1;
+                    utterance.pitch = 1.2;
+                } else if (characterMode === 'aobing') {
+                    utterance.rate = 0.9;
+                    utterance.pitch = 0.9;
+                } else {
+                    utterance.rate = 1.2;
+                    utterance.pitch = 1;
+                }
+                
+                utterance.volume = 0.8;
+                synth.speak(utterance);
+            }
+            
+            localStorage.setItem('calculatorCharacterMode', characterMode);
+        }
+
+        // 页面加载时初始化主题
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('calculatorTheme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.querySelector('.theme-toggle i').className = 
+                savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+
+        // 初始化音效设置
+        const savedSound = localStorage.getItem('calculatorSound');
+        if (savedSound !== null) {
+            isSoundEnabled = savedSound === 'true';
+        }
+
+        // 初始化角色模式
+        const savedCharacterMode = localStorage.getItem('calculatorCharacterMode');
+        if (savedCharacterMode) {
+            characterMode = savedCharacterMode;
+            const characterToggle = document.querySelector('.character-toggle i');
+            if (characterMode === 'normal') {
+                characterToggle.className = 'fas fa-user';
+            } else if (characterMode === 'nezha') {
+                characterToggle.className = 'fas fa-child';
+            } else {
+                characterToggle.className = 'fas fa-dragon';
+            }
+        }
+
+        // 初始化时设置正确的模式标签
+        window.addEventListener('load', () => {
+            const modeLabel = document.getElementById('character-mode-label');
+            if (characterMode === 'nezha') {
+                modeLabel.textContent = '哪吒模式';
+            } else if (characterMode === 'aobing') {
+                modeLabel.textContent = '敖丙模式';
+            } else {
+                modeLabel.textContent = '普通模式';
+            }
+        });
+
+        // 修改符号切换函数
+        function toggleSign() {
+            if (currentValue !== '0') {
+                playOperatorSound();
+                const newValue = currentValue.startsWith('-') ? 
+                    currentValue.substring(1) : 
+                    '-' + currentValue;
+                currentValue = newValue;
+                updateDisplay(currentValue);
+                
+                // 优化语音反馈
+                if (isSoundEnabled) {
+                    synth.cancel();
+                    let text;
+                    const absValue = currentValue.replace('-', '');
+                    const isNegative = currentValue.startsWith('-');
+                    
+                    if (characterMode === 'nezha') {
+                        text = `${absValue}变成${isNegative ? '负' : '正'}${absValue}啦！`;
+                    } else if (characterMode === 'aobing') {
+                        text = `${absValue}转换为${isNegative ? '负' : '正'}${absValue}`;
+                    } else {
+                        text = `${isNegative ? '负' : '正'}${absValue}`;
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.voice = voice;
+                    
+                    if (characterMode === 'nezha') {
+                        utterance.rate = 1.1;
+                        utterance.pitch = 1.2;
+                    } else if (characterMode === 'aobing') {
+                        utterance.rate = 0.9;
+                        utterance.pitch = 0.9;
+                    } else {
+                        utterance.rate = 1.2;
+                        utterance.pitch = 1;
+                    }
+                    
+                    utterance.volume = 0.8;
+                    synth.speak(utterance);
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
